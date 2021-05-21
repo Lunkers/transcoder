@@ -47,7 +47,7 @@ public:
     std::string outputCodec;
 private:
     int openMedia(const std::string &inputFileName, AVFormatContext **avfc);
-    int prepareDecoder(StreamContext &sc);
+    int prepareDecoder(StreamContext *sc);
     int fillStreamInfo(AVStream *avStream, AVCodec **avCodec, AVCodecContext **avCodecContext);
 };
 
