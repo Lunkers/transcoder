@@ -15,6 +15,7 @@ extern "C" {
     #include <libavutil/timestamp.h>
     #include <libavformat/avformat.h>
     #include <libavcodec/avcodec.h>
+    #include <libavutil/opt.h>
 }
 typedef struct StreamParams {
     bool copyVideo;
@@ -48,8 +49,9 @@ public:
     int Transcode(std::string &inputFile, std::string &outputFile, std::string &codec, std::string &codecPrivkey, std::string &codecPrivValue,bool copyAudio = true, bool copyVideo = false);
 private:
     int openMedia(const std::string &inputFileName, AVFormatContext **avfc);
-    int prepareDecoder(StreamContext *sc);
+    int prepareDecoder(StreamContext *sc); // TODO: refactor signature for consistency
     int fillStreamInfo(AVStream *avStream, AVCodec **avCodec, AVCodecContext **avCodecContext);
+    int prepareVideoEncoder(StreamContext *streamContext, AVCodecContext *decoderContext, AVRational &inputFrameRate, StreamParams &streamParams);
 };
 
 #endif /* transcoder_h */

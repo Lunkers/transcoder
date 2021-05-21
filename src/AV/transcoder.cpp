@@ -93,6 +93,57 @@ int Transcoder::prepareDecoder(StreamContext *sc) {
     return 0;
 }
 
+int Transcoder::prepareVideoEncoder(StreamContext *streamContext, AVCodecContext *decoderContext, AVRational &inputFrameRate, StreamParams &streamParams){
+    // create a stream
+    streamContext->videoAVStream = avformat_new_stream(streamContext->avFormatContext, NULL);
+    // setup encoder
+    streamContext->videoAVCodec = avcodec_find_encoder_by_name(streamParams.videoCodec.c_str());
+    if(!streamContext->videoAVCodec) {
+        std::cout << "could not find the proper codec! \n";
+        return -1;
+    }
+    
+    // setup codec context for video
+    streamContext->videoAVCodecContext = avcodec_alloc_context3(streamContext->videoAVCodec);
+    if(!streamContext->videoAVCodecContext) {
+        std::cout << "could not allocate memory for codec context! \n";
+        return -1;
+    }
+    
+    av_opt_set(streamContext->videoAVCodecContext->priv_data, "preset", "fast", 0); // TODO: make this configurable
+    if(streamParams.codecPrivKey.c_str() && streamParams.codecPrivValue.c_str()) {
+        av_opt_set(streamContext->videoAVCodecContext->priv_data, streamParams.codecPrivKey.c_str(), streamParams.codecPrivValue.c_str(), 0);
+    }
+    
+    // copy height, width, aspect ratio
+    streamContext->videoAVCodecContext->height = decoderContext->height;
+    streamContext->videoAVCodecContext->width = decoderContext->width;
+    streamContext->videoAVCodecContext->sample_aspect_ratio = decoderContext->sample_aspect_ratio;
+    
+    // copy pixel format. TODO: make this configurable by user!
+    if(streamContext->videoAVCodec->pix_fmts) {
+        streamContext->videoAVCodecContext->pix_fmt = streamContext->videoAVCodec->pix_fmts[0];
+    } else {
+        streamContext->videoAVCodecContext->pix_fmt = decoderContext->pix_fmt;
+    }
+    
+    streamContext->videoAVCodecContext->bit_rate = 3 * 1000 * 1000; // Default to 3Mbit/s
+    streamContext->videoAVCodecContext->rc_buffer_size = 6 * 1000 * 1000 + 7 * 700 * 1000;
+    streamContext->videoAVCodecContext->rc_max_rate = 4.5 * 1000 * 1000;
+    streamContext->videoAVCodecContext->rc_min_rate = 3 * 1000 * 1000;
+    
+    // timing
+    streamContext->videoAVCodecContext->time_base = av_inv_q(inputFrameRate);
+    streamContext->videoAVStream->time_base = streamContext->videoAVCodecContext->time_base;
+    
+    if(avcodec_open2(streamContext->videoAVCodecContext, streamContext->videoAVCodec, NULL) < 0) {
+        std::cout <<  "could not open the codec! \n";
+        return -1;
+    }
+    avcodec_parameters_from_context(streamContext->videoAVStream->codecpar, streamContext->videoAVCodecContext);
+    return 0;
+}
+
 int Transcoder::Transcode(std::string &inputFile, std::string &outputFile, std::string &codec, std::string &codecPrivkey, std::string &codecPrivValue, bool copyAudio, bool copyVideo) {
     
     // init our streamparams
