@@ -45,6 +45,7 @@ class Transcoder {
 public:
     std::string inputCodec;
     std::string outputCodec;
+    int Transcode(std::string &inputFile, std::string &outputFile, std::string &codec, std::string &codecPrivkey, std::string &codecPrivValue,bool copyAudio = true, bool copyVideo = false);
 private:
     int openMedia(const std::string &inputFileName, AVFormatContext **avfc);
     int prepareDecoder(StreamContext *sc);
