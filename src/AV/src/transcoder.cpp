@@ -144,6 +144,46 @@ int Transcoder::prepareVideoEncoder(StreamContext *streamContext, AVCodecContext
     return 0;
 }
 
+int Transcoder::prepareAudioEncoder(StreamContext *streamContext, int &sampleRate, StreamParams &streamParams){
+    streamContext->audioAVStream = avformat_new_stream(streamContext->avFormatContext, NULL);
+    
+    streamContext->audioAVCodec = avcodec_find_encoder_by_name(streamParams.audioCodec.c_str());
+    if(!streamContext->audioAVCodec) {
+        std::cout << "Could not find the correct audio codec!";
+        return -1;
+    }
+    streamContext->audioAVCodecContext = avcodec_alloc_context3(streamContext->audioAVCodec);
+    if(!streamContext->audioAVCodecContext) {
+        std::cout << "could not allocate memory for audio codec context!";
+        return -1;
+    }
+    
+    int OUTPUT_CHANNELS = 2; // only stereo audio for now, maybe we add configurable channels down the line ?
+    int OUTPUT_BIT_RATE = 196000; // default to 196kbps, make this configurable later!
+    
+    // configure our codec context
+    streamContext->audioAVCodecContext->channels = OUTPUT_CHANNELS;
+    streamContext->audioAVCodecContext->channel_layout = av_get_default_channel_layout(OUTPUT_CHANNELS);
+    streamContext->audioAVCodecContext->sample_rate = sampleRate;
+    streamContext->audioAVCodecContext->sample_fmt = streamContext->audioAVCodec->sample_fmts[0];
+    streamContext->audioAVCodecContext->bit_rate = OUTPUT_BIT_RATE;
+    streamContext->audioAVCodecContext->time_base = (AVRational){1, sampleRate};
+    
+    streamContext->audioAVCodecContext->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
+    
+    streamContext->audioAVStream->time_base = streamContext->audioAVCodecContext->time_base; //match time bases
+    
+    if(avcodec_open2(streamContext->audioAVCodecContext, streamContext->audioAVCodec, NULL) < 0) {
+        std::cout << "Could not open the codec!";
+        return -1;
+    }
+    
+    // set the codec parameters based on our context params
+    avcodec_parameters_from_context(streamContext->audioAVStream->codecpar, streamContext->audioAVCodecContext);
+    
+    return 0;
+}
+
 int Transcoder::Transcode(std::string &inputFile, std::string &outputFile, std::string &codec, std::string &codecPrivkey, std::string &codecPrivValue, bool copyAudio, bool copyVideo) {
     
     // init our streamparams

@@ -13,10 +13,17 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
     libavutil
 )
 
+
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/AV/src/transcoder.hpp
+    src/AV/src/transmuxer.hpp
+    src/AV/src/transcoder.cpp
+    src/AV/src/transmuxer.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
     PkgConfig::LIBAV
 )
+
+target_include_directories(${PROJECT_NAME} PRIVATE src/AV)

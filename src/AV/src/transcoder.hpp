@@ -52,6 +52,7 @@ private:
     int prepareDecoder(StreamContext *sc); // TODO: refactor signature for consistency
     int fillStreamInfo(AVStream *avStream, AVCodec **avCodec, AVCodecContext **avCodecContext);
     int prepareVideoEncoder(StreamContext *streamContext, AVCodecContext *decoderContext, AVRational &inputFrameRate, StreamParams &streamParams);
+    int prepareAudioEncoder(StreamContext *streamContext, int &sampleRate, StreamParams &streamParams);
 };
 
 #endif /* transcoder_h */

@@ -8,7 +8,6 @@
 #ifndef transmuxer_hpp
 #define transmuxer_hpp
 #include <string>
-#include "LibAV.h"
 #include <iostream>
 #define __STDC_CONSTANT_MACROS
 extern "C" {
