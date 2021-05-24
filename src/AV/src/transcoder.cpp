@@ -233,11 +233,12 @@ int encodeVideo(StreamContext *decoderContext, StreamContext *encoderContext, AV
         return -1;
     }
     
-    // send frame to encoder context
+    // send raw video frame to encoder
     int response = avcodec_send_frame(encoderContext->videoAVCodecContext, inputFrame);
     // response will be 0 as long as everything is OK, we use this to loop
     while (response >= 0) {
-        response = avcodec_send_packet(encoderContext->videoAVCodecContext, outPacket);
+        // receive the encoded packet
+        response = avcodec_receive_packet(encoderContext->videoAVCodecContext, outPacket);
         if(response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
             // we're done with the file, exit loop
             break;
