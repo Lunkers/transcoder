@@ -121,7 +121,7 @@ int Transcoder::prepareVideoEncoder(StreamContext *streamContext, AVCodecContext
         return -1;
     }
     
-    av_opt_set(streamContext->videoAVCodecContext->priv_data, "preset", "fast", 0); // TODO: make this configurable
+//    av_opt_set(streamContext->videoAVCodecContext->priv_data, "preset", "fast", 0); // TODO: make this configurable
     if(streamParams.codecPrivKey.c_str() && streamParams.codecPrivValue.c_str()) {
         av_opt_set(streamContext->videoAVCodecContext->priv_data, streamParams.codecPrivKey.c_str(), streamParams.codecPrivValue.c_str(), 0);
     }

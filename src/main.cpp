@@ -1,4 +1,5 @@
 #include <iostream>
+#include <yaml-cpp/yaml.h>
 #include "AV/src/transmuxer.hpp"
 #include "AV/src/transcoder.hpp"
 
