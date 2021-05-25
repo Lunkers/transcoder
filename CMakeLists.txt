@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 include(FetchContent)
+set(CMAKE_CXX_STANDARD 11)
 
 project(ffmpeg-experiments)
 find_package(PkgConfig REQUIRED)

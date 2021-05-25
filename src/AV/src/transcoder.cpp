@@ -365,7 +365,7 @@ int Transcoder::encodeAudio(StreamContext *decoderContext, StreamContext *encode
 
 
 
-int Transcoder::Transcode(std::string &inputFile, std::string &outputFile, std::string &codec, std::string &codecPrivkey, std::string &codecPrivValue, bool copyAudio, bool copyVideo) {
+int Transcoder::Transcode(std::string &inputFile, std::string &outputFile,StreamParams &streamParams) {
     /**
         Transcodes a video file and writes the result to an output file.
         @param inputFile: the URL of the file to transcode (i.e input file)
@@ -379,13 +379,13 @@ int Transcoder::Transcode(std::string &inputFile, std::string &outputFile, std::
     
     // init our streamparams
     // maybe pass this as an argument instead, and init somewhere else?
-    StreamParams streamParams = {};
-    streamParams.copyAudio = copyAudio;
-    streamParams.copyVideo = copyVideo;
-    streamParams.videoCodec = codec;
-    streamParams.codecPrivKey = codecPrivkey;
-    streamParams.codecPrivValue = codecPrivValue;
-    
+//    StreamParams streamParams = {};
+//    streamParams.copyAudio = copyAudio;
+//    streamParams.copyVideo = copyVideo;
+//    streamParams.videoCodec = codec;
+//    streamParams.codecPrivKey = codecPrivkey;
+//    streamParams.codecPrivValue = codecPrivValue;
+//    
     // init StreamContexts for encoder and decoder
     StreamContext *decoder = (StreamContext*) calloc(1, sizeof(StreamContext));
     decoder->fileName = inputFile;
