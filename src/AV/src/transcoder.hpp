@@ -54,7 +54,7 @@ private:
     int prepareVideoEncoder(StreamContext *streamContext, AVCodecContext *decoderContext, AVRational &inputFrameRate, StreamParams &streamParams);
     int prepareAudioEncoder(StreamContext *streamContext, int &sampleRate, StreamParams &streamParams);
     int prepareCopy(AVFormatContext *avFormatContext, AVStream **avStream, AVCodecParameters *decoderParameters);
-    int remux(AVPacket **packet, AVFormatContext *formatContext, AVRational decoderTb, AVRational encoderTb);
+    int remux(AVPacket **packet, AVFormatContext **formatContext, AVRational decoderTb, AVRational encoderTb);
     int encodeVideo(StreamContext *decoderContext, StreamContext *encoderContext, AVFrame *inputFrame);
     int encodeAudio(StreamContext *decoderContext, StreamContext *encoderContext, AVFrame *inputFrame);
     int transcodeVideo(StreamContext *decoderContext, StreamContext *encoderContext, AVPacket *inputPacket, AVFrame *inputFrame);

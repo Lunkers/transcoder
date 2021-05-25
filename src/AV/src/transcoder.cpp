@@ -195,12 +195,12 @@ int Transcoder::prepareAudioEncoder(StreamContext *streamContext, int &sampleRat
     return 0;
 }
 
-int Transcoder::remux(AVPacket **packet, AVFormatContext *formatContext, AVRational decoderTb, AVRational encoderTb){
+int Transcoder::remux(AVPacket **packet, AVFormatContext **formatContext, AVRational decoderTb, AVRational encoderTb){
     /**
         Remuxes a packet
      */
     av_packet_rescale_ts(*packet,decoderTb, encoderTb);
-    if(av_interleaved_write_frame(formatContext, *packet) < 0) {
+    if(av_interleaved_write_frame(*formatContext, *packet) < 0) {
         std::cout << "Failed to copy frame! \n";
         return -1;
     }
@@ -216,7 +216,7 @@ int Transcoder::prepareCopy(AVFormatContext *avFormatContext, AVStream **avStrea
     return 0;
 }
 
-int encodeVideo(StreamContext *decoderContext, StreamContext *encoderContext, AVFrame *inputFrame) {
+int Transcoder::encodeVideo(StreamContext *decoderContext, StreamContext *encoderContext, AVFrame *inputFrame) {
     /**
          Encodes a video  AVFrame to the encoder StreamContext.
          Copies the stream index and time base from the decoder StreamContext
@@ -391,6 +391,7 @@ int Transcoder::Transcode(std::string &inputFile, std::string &outputFile, std::
     decoder->fileName = inputFile;
     
     StreamContext *encoder = (StreamContext*) calloc(1, sizeof(StreamContext));
+    encoder->fileName = outputFile;
     
     if(openMedia(decoder->fileName, &decoder->avFormatContext) < 0) return -1;
     if(prepareDecoder(decoder) <0 ) return  -1;
@@ -463,10 +464,38 @@ int Transcoder::Transcode(std::string &inputFile, std::string &outputFile, std::
     // < 0 if an error occured or it has reached EOF.
     while(av_read_frame(decoder->avFormatContext, inPacket) >= 0) {
         // TODO: set up transcoding or muxing here!
-        // use a function pointer to separate audio/video coding?
+        // I cant find a way to hot-swap in C++, so we'll do it the ugly way
+        if(decoder->avFormatContext->streams[inPacket->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO){
+            if(!streamParams.copyVideo) {
+                if (transcodeVideo(decoder, encoder, inPacket, inFrame) < 0) {
+                    return -1;
+                }
+                av_packet_unref(inPacket);
+            } else {
+                if(remux(&inPacket, &encoder->avFormatContext, decoder->videoAVStream->time_base, encoder->videoAVStream->time_base) < 0) {
+                    return -1;
+                }
+            }
+        } else if (decoder->avFormatContext->streams[inPacket->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO){
+            if(!streamParams.copyAudio) {
+                if (transcodeAudio(decoder, encoder, inPacket, inFrame) < 0) {
+                    return -1;
+                }
+                av_packet_unref(inPacket);
+            } else {
+                if(remux(&inPacket, &encoder->avFormatContext, decoder->videoAVStream->time_base, encoder->videoAVStream->time_base) < 0) {
+                    return -1;
+                }
+            }
+        } else {
+            std::cout << "ignoring non video/audio packages \n";
+        }
     }
     
-    // TODO: flush video encoder
+    // flush video encoder
+    if(encodeVideo(decoder, encoder, NULL) < 0) {
+        return -1;
+    }
     
     av_write_trailer(encoder->avFormatContext);
     
